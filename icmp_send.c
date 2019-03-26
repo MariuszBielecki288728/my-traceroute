@@ -13,18 +13,9 @@
 
 struct icmphdr prepare_icmp_header(uint16_t seq);
 
-int icmp_send(char* target_ip)
+int icmp_send(int sockfd, int ttl, char *target_ip)
 {
     struct icmphdr icmp_header;
-    int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-
-    if (sockfd < 0)
-    {
-        fprintf(stderr, "socket error: %s\n", strerror(errno));
-        return EXIT_FAILURE;
-    }
-
-    
 
     struct sockaddr_in recipient;
     bzero(&recipient, sizeof(recipient));
