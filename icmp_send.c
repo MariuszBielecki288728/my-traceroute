@@ -13,7 +13,7 @@
 
 struct icmphdr prepare_icmp_header(uint16_t seq);
 
-int icmp_send(int sockfd, int ttl, char *target_ip)
+int icmp_send(int sockfd, int ttl, int seq, char *target_ip)
 {
     struct icmphdr icmp_header;
 
@@ -24,21 +24,18 @@ int icmp_send(int sockfd, int ttl, char *target_ip)
 
     int ttl = 1;
     setsockopt(sockfd, IPPROTO_IP, IP_TTL, &ttl, sizeof(int));
-    for (uint16_t i = 0; i < 3; i++)
+    icmp_header = prepare_icmp_header(seq);
+    ssize_t bytes_sent = sendto(
+        sockfd,
+        &icmp_header,
+        sizeof(icmp_header),
+        0,
+        (struct sockaddr *)&recipient,
+        sizeof(recipient));
+    if (bytes_sent < 0)
     {
-        icmp_header = prepare_icmp_header(i);
-        ssize_t bytes_sent = sendto(
-            sockfd,
-            &icmp_header,
-            sizeof(icmp_header),
-            0,
-            (struct sockaddr *)&recipient,
-            sizeof(recipient));
-        if (bytes_sent < 0)
-        {
-            fprintf(stderr, "send error: %s\n", strerror(errno));
-            return EXIT_FAILURE;
-        }
+        fprintf(stderr, "send error: %s\n", strerror(errno));
+        return EXIT_FAILURE;
     }
 }
 
