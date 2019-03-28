@@ -65,9 +65,10 @@ int traceroute_handle_step(int sockfd, int ttl, char* target_ip)
     tv.tv_sec  = 1;
     tv.tv_usec = 0;
 
-    for(int i = 0; i < 1; i++)
+    for(int i = 0; i < 3; i++)
     {
         icmp_receive(sockfd, ttl, &tv, buffer);
-        struct iphdr* ip_header = (struct iphdr*)buffer;
+        //struct iphdr* ip_header = (struct iphdr*)buffer;
     }
+    return 0;
 }
