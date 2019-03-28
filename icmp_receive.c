@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 void print_as_bytes(unsigned char* buff, ssize_t length)
 {
@@ -13,7 +15,7 @@ void print_as_bytes(unsigned char* buff, ssize_t length)
         printf("%.2x ", *buff);
 }
 
-int icmp_receive(int wait_for, int sockfd, int ttl, struct timeval* timeout, uint8_t buffer[])
+int icmp_receive(int sockfd, int ttl, struct timeval* timeout, uint8_t buffer[])
 {
 
     for(;;)
@@ -41,7 +43,8 @@ int icmp_receive(int wait_for, int sockfd, int ttl, struct timeval* timeout, uin
 
         if(icmp_header->un.echo.id != htons(getpid()))
         {
-            break;
+            printf("cyk\n");
+            continue;
         }
 
         printf("IP header: ");

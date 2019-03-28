@@ -1,12 +1,22 @@
 #include "icmp_receive.c"
 #include "icmp_send.c"
 
+#include <sys/time.h>
+
 #define EXIT_WITH_ERR(err, ...)          \
     fprintf(stderr, err, ##__VA_ARGS__); \
     exit(EXIT_FAILURE);
 #define TARGET_REACHED 1
 
-int validate_ip(char*);
+int traceroute_handle_step(int sockfd, int ttl, char* target_ip);
+
+int validate_ip(char* ip)
+{
+    struct sockaddr_in sa;
+
+    int result = inet_pton(AF_INET, ip, &(sa.sin_addr));
+    return result != 0;
+}
 
 int main(int argc, char* argv[])
 {
@@ -21,7 +31,7 @@ int main(int argc, char* argv[])
     {
         EXIT_WITH_ERR("argument error: ip address not provided");
     }
-    target_ip = argv[0];
+    target_ip = argv[1];
 
     if(!validate_ip(target_ip))
     {
@@ -46,13 +56,18 @@ int traceroute_handle_step(int sockfd, int ttl, char* target_ip)
 {
     for(int seq = 0; seq < 3; seq++)
     {
-        icmp_send(sockfd, ttl, seq, target_ip);
-
-        for(int i = 0; i < 3; i++)
-        {
-             u_int8_t           buffer[IP_MAXPACKET];
-        }
-        
+        icmp_send(sockfd, ttl, ttl, target_ip);
     }
 
+    u_int8_t buffer[IP_MAXPACKET];
+
+    struct timeval tv;
+    tv.tv_sec  = 1;
+    tv.tv_usec = 0;
+
+    for(int i = 0; i < 1; i++)
+    {
+        icmp_receive(sockfd, ttl, &tv, buffer);
+        struct iphdr* ip_header = (struct iphdr*)buffer;
+    }
 }

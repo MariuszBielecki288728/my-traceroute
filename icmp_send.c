@@ -15,6 +15,7 @@ struct icmphdr prepare_icmp_header(uint16_t seq);
 
 int icmp_send(int sockfd, int ttl, int seq, char *target_ip)
 {
+    printf("cykk");
     struct icmphdr icmp_header;
 
     struct sockaddr_in recipient;
@@ -22,7 +23,6 @@ int icmp_send(int sockfd, int ttl, int seq, char *target_ip)
     recipient.sin_family = AF_INET;
     inet_pton(AF_INET, target_ip, &recipient.sin_addr);
 
-    int ttl = 1;
     setsockopt(sockfd, IPPROTO_IP, IP_TTL, &ttl, sizeof(int));
     icmp_header = prepare_icmp_header(seq);
     ssize_t bytes_sent = sendto(
