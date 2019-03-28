@@ -3,10 +3,6 @@
 
 #include <sys/time.h>
 
-#define EXIT_WITH_ERR(err, ...)          \
-    fprintf(stderr, err, ##__VA_ARGS__); \
-    exit(EXIT_FAILURE);
-#define TARGET_REACHED 1
 
 int traceroute_handle_step(int sockfd, int ttl, char* target_ip);
 
@@ -17,6 +13,19 @@ int validate_ip(char* ip)
     int result = inet_pton(AF_INET, ip, &(sa.sin_addr));
     return result != 0;
 }
+// void zero_duplicates(char (*ip_addresses)[3][20])
+// {
+//     for(int i = 0; i < 3; i++)
+//     {
+//         int already_present = 0;
+//         for(int j = 0; j < i; j++)
+//         {
+//             if(ip_addresses[i] && !strcmp(ip_addresses[j], ip_addresses[i])){
+//                 already_present = 1;
+//             }
+//         }
+//     }
+// }
 
 int main(int argc, char* argv[])
 {
@@ -39,8 +48,9 @@ int main(int argc, char* argv[])
     }
 
     int status;
-    for(int ttl = 1; ttl <= 40; ttl++)
+    for(int ttl = 1; ttl <= 30; ttl++)
     {
+        printf("%d. ", ttl);
         status = traceroute_handle_step(sockfd, ttl, target_ip);
 
         if(status == TARGET_REACHED)
@@ -52,6 +62,17 @@ int main(int argc, char* argv[])
     EXIT_WITH_ERR("Couldn't trace %s", target_ip);
 }
 
+long compute_avarage(long* times)
+{
+    for(int i = 0; i < 3; i++)
+    {
+        if(times[i] == 0)
+        {
+            return -1;
+        }
+    }
+    return (times[0] + times[1] + times[2]) / 3;
+}
 int traceroute_handle_step(int sockfd, int ttl, char* target_ip)
 {
     for(int seq = 0; seq < 3; seq++)
@@ -65,10 +86,61 @@ int traceroute_handle_step(int sockfd, int ttl, char* target_ip)
     tv.tv_sec  = 1;
     tv.tv_usec = 0;
 
+    int reached = 0;
+
+    long times[3];
+    char sender_ip_str[3][20];
+    memset(sender_ip_str, 0, sizeof(sender_ip_str[0][0]) * 3 * 20);
+    int answered = 0;
     for(int i = 0; i < 3; i++)
     {
-        icmp_receive(sockfd, ttl, &tv, buffer);
-        //struct iphdr* ip_header = (struct iphdr*)buffer;
+        int status = icmp_receive(sockfd, ttl, &tv, buffer, sender_ip_str[i]);
+        if(status == TARGET_REACHED)
+        {
+            reached = 1;
+        }
+        if(status == TARGET_REACHED || status == EXCEEDED_ANSWER)
+        {
+            answered = 1;
+        }
+        times[i] = tv.tv_usec || tv.tv_sec ? (1000000 - tv.tv_usec) / 1000 : 0;
+        // struct iphdr* ip_header = (struct iphdr*)buffer;
     }
-    return 0;
+    if(answered)
+    {
+        long av = compute_avarage(times);
+        for(int j = 0; j < 3; j++)
+        {
+            if(times[j])
+            {
+                printf("%s ", sender_ip_str[j]);
+                for(int i = j; i < 3; i++)
+                {
+                    if(!strcmp(sender_ip_str[j], sender_ip_str[i]))
+                    {
+                        times[i] = 0;
+                    }
+                }
+            }
+        }
+
+        if(av == -1)
+        {
+            printf("???");
+        }
+        else
+        {
+            printf("%ld ms", av);
+        }
+        printf("\n");
+    }
+    else
+    {
+        printf("*\n");
+    }
+    if(reached)
+    {
+        return TARGET_REACHED;
+    }
+    return TARGET_NOT_REACHED;
 }

@@ -15,7 +15,6 @@ struct icmphdr prepare_icmp_header(uint16_t seq);
 
 int icmp_send(int sockfd, int ttl, int seq, char *target_ip)
 {
-    printf("cykk");
     struct icmphdr icmp_header;
 
     struct sockaddr_in recipient;
