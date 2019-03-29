@@ -1,5 +1,5 @@
 
-CFLAGS = -Wall -Wextra -Werror -DEBUG -g -std=gnu99
+CFLAGS = -Wall -Wextra -Werror -g -std=gnu99
 
 traceroute: $(obj)
 	gcc $(CFLAGS) -c -o traceroute.o traceroute.c
