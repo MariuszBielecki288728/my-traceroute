@@ -1,7 +1,8 @@
 #pragma once
+
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
 #define EXIT_WITH_ERR(err, ...)          \
     fprintf(stderr, err, ##__VA_ARGS__); \

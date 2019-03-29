@@ -1,7 +1,5 @@
-#include "traceroute.h"
-#include "defines.h"
-#include "icmp_receive.h"
-#include "icmp_send.h"
+// Mariusz Bielecki 288728
+
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netinet/ip.h>
@@ -10,14 +8,10 @@
 #include <string.h>
 #include <sys/time.h>
 
-
-int validate_ip(char* ip)
-{
-    struct sockaddr_in sa;
-
-    int result = inet_pton(AF_INET, ip, &(sa.sin_addr));
-    return result != 0;
-}
+#include "defines.h"
+#include "icmp_receive.h"
+#include "icmp_send.h"
+#include "traceroute.h"
 
 int main(int argc, char* argv[])
 {
@@ -51,19 +45,17 @@ int main(int argc, char* argv[])
         }
     }
 
-    EXIT_WITH_ERR("Couldn't trace %s", target_ip);
+    EXIT_WITH_ERR("Couldn't trace %s\n", target_ip);
 }
-long compute_avarage(long* times)
+
+int validate_ip(char* ip)
 {
-    for(int i = 0; i < 3; i++)
-    {
-        if(times[i] == 0)
-        {
-            return -1;
-        }
-    }
-    return (times[0] + times[1] + times[2]) / 3;
+    struct sockaddr_in sa;
+
+    int result = inet_pton(AF_INET, ip, &(sa.sin_addr));
+    return result != 0;
 }
+
 int traceroute_handle_step(int sockfd, int ttl, char* target_ip)
 {
     for(int seq = 0; seq < 3; seq++)
@@ -100,20 +92,7 @@ int traceroute_handle_step(int sockfd, int ttl, char* target_ip)
     if(answered)
     {
         long av = compute_avarage(times);
-        for(int j = 0; j < 3; j++)
-        {
-            if(times[j])
-            {
-                printf("%s ", sender_ip_str[j]);
-                for(int i = j; i < 3; i++)
-                {
-                    if(!strcmp(sender_ip_str[j], sender_ip_str[i]))
-                    {
-                        times[i] = 0;
-                    }
-                }
-            }
-        }
+        print_unique_addresses(times, sender_ip_str);
 
         if(av == -1)
         {
@@ -134,4 +113,34 @@ int traceroute_handle_step(int sockfd, int ttl, char* target_ip)
         return TARGET_REACHED;
     }
     return TARGET_NOT_REACHED;
+}
+
+long compute_avarage(long* times)
+{
+    for(int i = 0; i < 3; i++)
+    {
+        if(times[i] == 0)
+        {
+            return -1;
+        }
+    }
+    return (times[0] + times[1] + times[2]) / 3;
+}
+
+void print_unique_addresses(long times[], char ip_addresses[3][20])
+{
+    for(int j = 0; j < 3; j++)
+    {
+        if(times[j])
+        {
+            printf("%s ", ip_addresses[j]);
+            for(int i = j; i < 3; i++)
+            {
+                if(!strcmp(ip_addresses[j], ip_addresses[i]))
+                {
+                    times[i] = 0;
+                }
+            }
+        }
+    }
 }
