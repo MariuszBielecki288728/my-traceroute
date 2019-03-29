@@ -85,9 +85,12 @@ int traceroute_handle_step(int sockfd, int ttl, char* target_ip)
         if(status == TARGET_REACHED || status == EXCEEDED_ANSWER)
         {
             answered = 1;
+            times[i] = tv.tv_usec || tv.tv_sec ? (1000000 - tv.tv_usec) / 1000 : 0;
         }
-        times[i] = tv.tv_usec || tv.tv_sec ? (1000000 - tv.tv_usec) / 1000 : 0;
-        // struct iphdr* ip_header = (struct iphdr*)buffer;
+        else
+        {
+            times[i] = -1;
+        }
     }
     if(answered)
     {
@@ -119,7 +122,7 @@ long compute_avarage(long* times)
 {
     for(int i = 0; i < 3; i++)
     {
-        if(times[i] == 0)
+        if(times[i] == -1)
         {
             return -1;
         }
@@ -131,14 +134,14 @@ void print_unique_addresses(long times[], char ip_addresses[3][20])
 {
     for(int j = 0; j < 3; j++)
     {
-        if(times[j])
+        if(times[j] != -1)
         {
             printf("%s ", ip_addresses[j]);
             for(int i = j; i < 3; i++)
             {
                 if(!strcmp(ip_addresses[j], ip_addresses[i]))
                 {
-                    times[i] = 0;
+                    times[i] = -1;
                 }
             }
         }
