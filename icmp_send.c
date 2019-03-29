@@ -1,6 +1,5 @@
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
-#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,9 +8,9 @@
 #include <unistd.h>
 #include <netdb.h>
 
-#include "icmp_checksum.c"
-
-struct icmphdr prepare_icmp_header(uint16_t seq);
+#include "icmp_send.h"
+#include "defines.h"
+#include "icmp_checksum.h"
 
 int icmp_send(int sockfd, int ttl, int seq, char *target_ip)
 {
@@ -33,9 +32,9 @@ int icmp_send(int sockfd, int ttl, int seq, char *target_ip)
         sizeof(recipient));
     if (bytes_sent < 0)
     {
-        fprintf(stderr, "send error: %s\n", strerror(errno));
-        return EXIT_FAILURE;
+        EXIT_WITH_ERR("send error: %s\n", strerror(errno));
     }
+    return EXIT_SUCCESS;
 }
 
 struct icmphdr prepare_icmp_header(uint16_t seq)

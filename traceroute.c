@@ -1,10 +1,15 @@
-#include "icmp_receive.c"
-#include "icmp_send.c"
-
+#include "traceroute.h"
+#include "defines.h"
+#include "icmp_receive.h"
+#include "icmp_send.h"
+#include <arpa/inet.h>
+#include <errno.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/time.h>
 
-
-int traceroute_handle_step(int sockfd, int ttl, char* target_ip);
 
 int validate_ip(char* ip)
 {
@@ -13,19 +18,6 @@ int validate_ip(char* ip)
     int result = inet_pton(AF_INET, ip, &(sa.sin_addr));
     return result != 0;
 }
-// void zero_duplicates(char (*ip_addresses)[3][20])
-// {
-//     for(int i = 0; i < 3; i++)
-//     {
-//         int already_present = 0;
-//         for(int j = 0; j < i; j++)
-//         {
-//             if(ip_addresses[i] && !strcmp(ip_addresses[j], ip_addresses[i])){
-//                 already_present = 1;
-//             }
-//         }
-//     }
-// }
 
 int main(int argc, char* argv[])
 {
@@ -61,7 +53,6 @@ int main(int argc, char* argv[])
 
     EXIT_WITH_ERR("Couldn't trace %s", target_ip);
 }
-
 long compute_avarage(long* times)
 {
     for(int i = 0; i < 3; i++)
