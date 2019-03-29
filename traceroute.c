@@ -103,7 +103,7 @@ int traceroute_handle_step(int sockfd, int ttl, char* target_ip)
         }
         else
         {
-            printf("%ld ms", av);
+            printf("%ldms", av);
         }
         printf("\n");
     }
